@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}CanchasSport - Reserva tu cancha{% endblock %}
+{% block content %}
+
+<section class="hero">
+    <div class="hero-content">
+        <p class="hero-tag">&#127967; Canchas sinteticas deportivas</p>
+        <h1 class="hero-title">Reserva tu cancha<br><span class="hero-accent">en segundos</span></h1>
+        <p class="hero-subtitle">La mejor plataforma para reservar canchas sinteticas. Elige tu horario y a jugar!</p>
+        <div class="hero-actions">
+            <a href="#canchas" class="btn btn-primary btn-lg">Ver canchas disponibles</a>
+            {% if not user.is_authenticated %}
+                <a href="{% url 'registro' %}" class="btn btn-ghost btn-lg">Crear cuenta gratis</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-visual">
+        <div class="field-art">
+            <div class="field-lines"></div>
+            <div class="field-center"></div>
+        </div>
+    </div>
+</section>
+
+<section class="canchas-section" id="canchas">
+    <div class="section-container">
+        <div class="section-header">
+            <h2 class="section-title">Canchas disponibles</h2>
+            <p class="section-sub">Selecciona la cancha ideal para tu deporte favorito</p>
+        </div>
+        {% if canchas %}
+            <div class="canchas-grid">
+                {% for cancha in canchas %}
+                <div class="cancha-card">
+                    <div class="cancha-img">
+                        <span class="cancha-tipo-badge">{{ cancha.get_tipo_display }}</span>
+                        <div class="cancha-placeholder">
+                            {% if cancha.tipo == 'futbol' %}&#x26BD;
+                            {% elif cancha.tipo == 'tenis' %}&#127934;
+                            {% elif cancha.tipo == 'baloncesto' %}&#127936;
+                            {% else %}&#127952;{% endif %}
+                        </div>
+                    </div>
+                    <div class="cancha-info">
+                        <h3 class="cancha-nombre">{{ cancha.nombre }}</h3>
+                        <p class="cancha-desc">{{ cancha.descripcion|default:"Cancha sintetica de alta calidad con iluminacion nocturna." }}</p>
+                        <div class="cancha-horario">
+                            &#128336; {{ cancha.hora_apertura|time:"H:i" }} - {{ cancha.hora_cierre|time:"H:i" }}
+                        </div>
+                        <div class="cancha-footer">
+                            <span class="cancha-precio">${{ cancha.precio_hora|floatformat:0 }}/hora</span>
+                            {% if user.is_authenticated and not user.is_staff %}
+                                <a href="{% url 'hacer_reserva' cancha.id %}" class="btn btn-primary btn-sm">Reservar</a>
+                            {% elif not user.is_authenticated %}
+                                <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Iniciar sesion</a>
+                            {% else %}
+                                <span class="btn btn-outline btn-sm">Admin</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p class="empty-icon">&#127967;</p>
+                <h3>No hay canchas disponibles por ahora</h3>
+                <p>El administrador aun no ha agregado canchas.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

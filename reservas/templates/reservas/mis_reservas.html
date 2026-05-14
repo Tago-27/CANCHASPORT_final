@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Mis Reservas - CanchasSport{% endblock %}
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">Mis reservas</h1>
+        <p class="page-sub">Historial y estado de tus reservas</p>
+        <a href="{% url 'inicio' %}" class="btn btn-primary btn-sm">+ Nueva reserva</a>
+    </div>
+
+    {% if reservas %}
+        <div class="reservas-list">
+            {% for reserva in reservas %}
+            <div class="reserva-item estado-{{ reserva.estado }}">
+                <div class="reserva-icono">
+                    {% if reserva.cancha.tipo == 'futbol' %}&#x26BD;
+                    {% elif reserva.cancha.tipo == 'tenis' %}&#127934;
+                    {% elif reserva.cancha.tipo == 'baloncesto' %}&#127936;
+                    {% else %}&#127952;{% endif %}
+                </div>
+                <div class="reserva-info">
+                    <h3>{{ reserva.cancha.nombre }}</h3>
+                    <p>&#128197; {{ reserva.fecha }} &nbsp; &#128336; {{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}</p>
+                    <p class="reserva-precio">${{ reserva.cancha.precio_hora|floatformat:0 }}/hora</p>
+                </div>
+                <div class="reserva-acciones">
+                    <span class="badge badge-{{ reserva.estado }}">{{ reserva.get_estado_display }}</span>
+                    {% if reserva.estado != 'cancelada' %}
+                    <form method="post" action="{% url 'cancelar_reserva' reserva.id %}" style="margin-top:8px;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Cancelar esta reserva?')">Cancelar</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p class="empty-icon">&#128203;</p>
+            <h3>No tienes reservas aun</h3>
+            <p>Ve a ver las canchas disponibles y haz tu primera reserva!</p>
+            <a href="{% url 'inicio' %}" class="btn btn-primary">Ver canchas</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

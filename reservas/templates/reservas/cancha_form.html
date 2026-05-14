@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{{ accion }} Cancha - Admin{% endblock %}
+{% block content %}
+<div class="page-container" style="max-width:640px;">
+    <div class="page-header">
+        <a href="{% url 'admin_panel' %}" class="btn-back">&#8592; Volver al panel</a>
+        <h1 class="page-title">{{ accion }} cancha</h1>
+    </div>
+    <div class="auth-card">
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group {% if field.name == 'disponible' %}form-check-group{% endif %}">
+                {% if field.name == 'disponible' %}
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        {{ field }}
+                        <label class="form-label" style="margin:0;" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    </div>
+                {% else %}
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                {% endif %}
+                {% if field.errors %}
+                    {% for error in field.errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+                {% endif %}
+            </div>
+            {% endfor %}
+            <div style="display:flex;gap:12px;margin-top:8px;">
+                <button type="submit" class="btn btn-primary btn-block">{{ accion }} cancha</button>
+                <a href="{% url 'admin_panel' %}" class="btn btn-outline btn-block">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

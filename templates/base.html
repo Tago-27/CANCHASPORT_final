@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CanchasSport{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="{% url 'inicio' %}" class="nav-logo">&#x2B21; CanchasSport</a>
+    <ul class="nav-links">
+      <li><a href="{% url 'inicio' %}" class="nav-link">Inicio</a></li>
+      {% if user.is_authenticated %}
+        {% if user.is_staff %}
+          <li><a href="{% url 'admin_panel' %}" class="nav-link nav-admin">Panel Admin</a></li>
+        {% else %}
+          <li><a href="{% url 'mis_reservas' %}" class="nav-link">Mis Reservas</a></li>
+        {% endif %}
+      {% endif %}
+    </ul>
+    <div class="nav-auth">
+      {% if user.is_authenticated %}
+        <span class="nav-user">
+          {% if user.is_staff %}<span class="badge-admin">Admin</span>{% endif %}
+          {{ user.first_name|default:user.username }}
+        </span>
+        <a href="{% url 'logout' %}" class="btn btn-outline">Cerrar sesion</a>
+      {% else %}
+        <a href="{% url 'login' %}" class="btn btn-outline">Iniciar sesion</a>
+        <a href="{% url 'registro' %}" class="btn btn-primary">Registrarse</a>
+      {% endif %}
+    </div>
+    <button class="nav-toggle" onclick="toggleMenu()">&#9776;</button>
+  </div>
+  <div class="nav-mobile" id="mobileMenu">
+    <a href="{% url 'inicio' %}">Inicio</a>
+    {% if user.is_authenticated %}
+      {% if user.is_staff %}<a href="{% url 'admin_panel' %}">Panel Admin</a>
+      {% else %}<a href="{% url 'mis_reservas' %}">Mis Reservas</a>{% endif %}
+      <a href="{% url 'logout' %}">Cerrar sesion</a>
+    {% else %}
+      <a href="{% url 'login' %}">Iniciar sesion</a>
+      <a href="{% url 'registro' %}">Registrarse</a>
+    {% endif %}
+  </div>
+</nav>
+
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+  <div class="message message-{{ message.tags }}">
+    {{ message }}
+    <button onclick="this.parentElement.remove()">&#x2715;</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main>{% block content %}{% endblock %}</main>
+
+<footer class="footer">
+  <div class="footer-container">
+    <p class="footer-logo">&#x2B21; CanchasSport</p>
+    <p class="footer-text">Reserva tu cancha sintetica favorita facil y rapido.</p>
+    <p class="footer-copy">&copy; 2025 CanchasSport.</p>
+  </div>
+</footer>
+
+<!-- Variables Django → JS -->
+<script>
+  const USER_IS_AUTHENTICATED = {% if user.is_authenticated %}true{% else %}false{% endif %};
+  const USER_IS_STAFF = {% if user.is_staff %}true{% else %}false{% endif %};
+</script>
+
+<script src="{% static 'js/main.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

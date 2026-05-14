@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}Panel Admin - CanchasSport{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+    <div>
+      <h1 class="page-title">Panel de Administracion</h1>
+      <p class="page-sub">Gestiona canchas y reservas del sistema</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <div class="pdf-dropdown">
+        <button class="btn btn-pdf" onclick="togglePdfMenu()">&#128196; Descargar PDF &#9662;</button>
+        <div class="pdf-menu" id="pdfMenu">
+          <a href="{% url 'descargar_pdf_reservas' %}?estado=todas">Todas las reservas</a>
+          <a href="{% url 'descargar_pdf_reservas' %}?estado=pendiente">Solo pendientes</a>
+          <a href="{% url 'descargar_pdf_reservas' %}?estado=confirmada">Solo confirmadas</a>
+          <a href="{% url 'descargar_pdf_reservas' %}?estado=cancelada">Solo canceladas</a>
+        </div>
+      </div>
+      <a href="{% url 'agregar_cancha' %}" class="btn btn-primary">+ Agregar cancha</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-admin">
+    <div class="stat-card"><span class="stat-num">{{ total_canchas }}</span><span class="stat-lbl">Canchas</span></div>
+    <div class="stat-card"><span class="stat-num">{{ total_reservas }}</span><span class="stat-lbl">Reservas totales</span></div>
+    <div class="stat-card accent"><span class="stat-num">{{ reservas_pendientes }}</span><span class="stat-lbl">Pendientes</span></div>
+    <div class="stat-card" style="border-top-color:#166534;"><span class="stat-num" style="color:#166534;">{{ reservas_confirmadas }}</span><span class="stat-lbl">Confirmadas</span></div>
+  </div>
+
+  <!-- Canchas -->
+  <div class="admin-section">
+    <div class="admin-section-header">
+      <h2>Canchas registradas</h2>
+    </div>
+    {% if canchas %}
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>Nombre</th><th>Tipo</th><th>Precio/h</th><th>Horario</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody>
+          {% for cancha in canchas %}
+          <tr>
+            <td><strong>{{ cancha.nombre }}</strong></td>
+            <td>{{ cancha.get_tipo_display }}</td>
+            <td>${{ cancha.precio_hora|floatformat:0 }}</td>
+            <td>{{ cancha.hora_apertura|time:"H:i" }} - {{ cancha.hora_cierre|time:"H:i" }}</td>
+            <td>{% if cancha.disponible %}<span class="badge badge-confirmada">Activa</span>{% else %}<span class="badge badge-cancelada">Inactiva</span>{% endif %}</td>
+            <td class="td-acciones">
+              <a href="{% url 'editar_cancha' cancha.id %}" class="btn btn-outline btn-sm">Editar</a>
+              <form id="del-cancha-{{ cancha.id }}" method="post" action="{% url 'eliminar_cancha' cancha.id %}">
+                {% csrf_token %}
+                <button type="button" class="btn btn-danger btn-sm"
+                  onclick="confirmarAccion('Eliminar la cancha {{ cancha.nombre }}?','del-cancha-{{ cancha.id }}')">
+                  Eliminar
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p class="empty-icon">&#127967;</p>
+      <h3>No hay canchas aun</h3>
+      <a href="{% url 'agregar_cancha' %}" class="btn btn-primary">Agregar primera cancha</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Reservas -->
+  <div class="admin-section">
+    <div class="admin-section-header"><h2>Reservas recientes</h2></div>
+    {% if reservas %}
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>Cliente</th><th>Cancha</th><th>Fecha</th><th>Horario</th><th>Estado</th><th>Cambiar estado</th></tr></thead>
+        <tbody>
+          {% for reserva in reservas %}
+          <tr>
+            <td>{{ reserva.usuario.get_full_name|default:reserva.usuario.username }}</td>
+            <td>{{ reserva.cancha.nombre }}</td>
+            <td>{{ reserva.fecha }}</td>
+            <td>{{ reserva.hora_inicio|time:"H:i" }} - {{ reserva.hora_fin|time:"H:i" }}</td>
+            <td><span class="badge badge-{{ reserva.estado }}">{{ reserva.get_estado_display }}</span></td>
+            <td>
+              <form method="post" action="{% url 'cambiar_estado_reserva' reserva.id %}">
+                {% csrf_token %}
+                <select name="estado" class="select-estado" onchange="this.form.submit()">
+                  <option value="pendiente" {% if reserva.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                  <option value="confirmada" {% if reserva.estado == 'confirmada' %}selected{% endif %}>Confirmada</option>
+                  <option value="cancelada" {% if reserva.estado == 'cancelada' %}selected{% endif %}>Cancelada</option>
+                </select>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p class="empty-icon">&#128203;</p>
+      <h3>No hay reservas aun</h3>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePdfMenu() {
+  const menu = document.getElementById('pdfMenu');
+  menu.classList.toggle('open');
+  document.addEventListener('click', function close(e) {
+    if (!e.target.closest('.pdf-dropdown')) {
+      menu.classList.remove('open');
+      document.removeEventListener('click', close);
+    }
+  });
+}
+</script>
+{% endblock %}
